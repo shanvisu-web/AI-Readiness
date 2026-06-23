@@ -7,6 +7,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>window.QRCode||document.write('<script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"><\/script>')</script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.6.0/build/index.umd.min.js"></script>
+<script>window.docx||document.write('<script src="https://unpkg.com/docx@9.6.0/build/index.umd.js"><\/script>')</script>
 <style>
 :root{
   --ink:#0E1726; --ink-soft:#3A4A63; --mute:#7D8BA3; --faint:#AEB9CC;
@@ -56,6 +58,19 @@ input{font-family:inherit;font-size:16px}
 .divider-or{display:flex;align-items:center;gap:14px;margin:20px 0;color:var(--faint);font-size:12px;font-weight:700;letter-spacing:.1em}
 .divider-or::before,.divider-or::after{content:"";height:1px;background:var(--line);flex:1}
 .home-foot{margin-top:30px;font-size:12.5px;color:var(--faint);text-align:center}
+.past{margin-top:34px}
+.past-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.past-h .pt-title{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.past-h .pt-count{font-size:11.5px;color:var(--faint);font-weight:600}
+.past-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto}
+.sess-card{display:flex;align-items:center;gap:14px;padding:13px 15px;background:var(--paper);border:1px solid var(--line);border-radius:11px;cursor:pointer;transition:all .14s;text-align:left;width:100%}
+.sess-card:hover{border-color:var(--brand);box-shadow:0 2px 10px rgba(11,92,216,.1);transform:translateY(-1px)}
+.sess-card .sc-score{width:48px;height:48px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;font-family:var(--mono);font-weight:750;font-size:16px;color:#fff}
+.sess-card .sc-mid{flex:1;min-width:0}
+.sess-card .sc-title{font-weight:650;font-size:14px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sess-card .sc-meta{font-size:11.5px;color:var(--mute);font-weight:500;margin-top:2px}
+.sess-card .sc-code{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--faint);flex-shrink:0}
+.past-empty{font-size:12.5px;color:var(--faint);text-align:center;padding:18px;background:var(--paper);border:1px dashed var(--line);border-radius:11px}
 
 /* ───────────── PARTICIPANT ───────────── */
 .pt{max-width:640px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
@@ -169,6 +184,9 @@ input{font-family:inherit;font-size:16px}
 .join-pill .qrbox img,.join-pill .qrbox canvas{display:block;width:120px;height:120px}
 .btn-reveal{background:var(--good);color:#fff;padding:11px 18px;border-radius:var(--r-sm);font-weight:650;font-size:14px;width:auto;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 10px rgba(22,163,74,.28)}
 .btn-reveal:hover{filter:brightness(1.06)}
+.btn-report{background:var(--brand);color:#fff;padding:11px 18px;border-radius:var(--r-sm);font-weight:650;font-size:14px;width:auto;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 10px rgba(11,92,216,.28)}
+.btn-report:hover{background:var(--brand-deep)}
+.btn-report:disabled{opacity:.6;cursor:default}
 
 /* dashboard grid */
 .dash{display:grid;grid-template-columns:1.32fr 1fr;gap:18px;align-items:start}
@@ -373,6 +391,543 @@ const IMPERATIVES = [
       ["7.5","Change Management in Plants","How effective is the organization at driving adoption across shifts, sites, unions, and local plant cultures?"],
   ]},
 ];
+// ===== EMBEDDED: maturity roadmap content =====
+// ============================================================================
+// AI READINESS — MATURITY ROADMAP CONTENT MODEL  (manufacturing, 7 imperatives)
+// Shared by the in-browser report generator and the Node sample generator.
+// For each imperative: a 5-rung maturity ladder + the concrete moves to climb
+// each rung. For each sub-question: a one-line "what good looks like" target.
+// Levels: 1 Experimental · 2 Operational · 3 Value-Driven · 4 Strategic · 5 AI-Native
+// ============================================================================
+const ROADMAP = {
+  1: {
+    name: "AI Strategy",
+    target: "AI is a board-level pillar of the manufacturing strategy, with a funded multi-plant roadmap, hard OEE/quality/cost targets, and an ecosystem model that lets new plants adopt proven AI in weeks.",
+    ladder: [
+      "AI is discussed but not tied to plant operations; no roadmap, targets, or named owner.",
+      "A few AI initiatives are sponsored locally; goals are qualitative and plant-specific, not enterprise.",
+      "An AI roadmap exists with measurable OEE/scrap/downtime targets and active leadership sponsorship.",
+      "AI strategy is integrated across plants and value streams, funded multi-year, governed centrally.",
+      "AI is core to competitive strategy; partners and platforms let new sites scale proven AI rapidly."
+    ],
+    moves: {
+      "1-2": "Name an executive owner for manufacturing AI and inventory every initiative running across plants today.",
+      "2-3": "Write a 3–5 year smart-factory roadmap with explicit targets for OEE, scrap, downtime, energy and safety; secure visible leadership sponsorship per site.",
+      "3-4": "Consolidate plant roadmaps into one funded multi-year enterprise plan with central governance and a shared platform strategy.",
+      "4-5": "Build a partner/ecosystem model and reusable platform so a new plant can adopt proven AI use cases in weeks, not quarters."
+    }
+  },
+  2: {
+    name: "AI Literacy",
+    target: "Every manufacturing role — operator to plant head — has role-based AI fluency, OT+AI talent is deliberately built, and AI is a trusted, everyday part of the continuous-improvement culture.",
+    ladder: [
+      "AI awareness is ad hoc; no structured training and little trust on the shopfloor.",
+      "Some role-based training exists; a handful of OT+AI specialists; trust is patchy.",
+      "Structured training runs for key roles, with transparency and human-in-the-loop building trust.",
+      "Training infrastructure and certifications scale across plants; AI is embedded in Lean/CI routines.",
+      "A continuous-improvement culture treats AI as a standard tool; talent pipeline is self-sustaining."
+    ],
+    moves: {
+      "1-2": "Stand up role-based AI awareness sessions for operators, engineers and supervisors; identify your first OT+AI champions.",
+      "2-3": "Roll out structured curricula per role and make AI decisions transparent (explanations, human-in-the-loop) to build shopfloor trust.",
+      "3-4": "Build repeatable training infrastructure and certifications, and wire AI into daily management, RCA and Kaizen.",
+      "4-5": "Tie AI literacy to performance objectives and a talent pipeline so capability compounds without central push."
+    }
+  },
+  3: {
+    name: "AI Data",
+    target: "OT and IT data are integrated, contextualized and governed end-to-end, with full provenance from raw signal to outcome — a trustworthy foundation any AI use case can build on.",
+    ladder: [
+      "OT and IT data are siloed; quality, context and governance are inconsistent.",
+      "Some OT/IT integration on key lines; data quality and governance are emerging but manual.",
+      "Integrated, contextualized data with active governance and responsible-AI controls.",
+      "Governed data platform spans plants with traceability and auditability built in.",
+      "Provenance is end-to-end and automated; data is a managed, trusted enterprise asset for AI."
+    ],
+    moves: {
+      "1-2": "Connect OT (sensors/PLC/SCADA) to IT (MES/ERP/QMS) on one priority line and assess what data exists, where it lives, and its quality.",
+      "2-3": "Fix data quality and context (timestamps, genealogy) and stand up master-data governance, access control and responsible-AI checks.",
+      "3-4": "Extend the governed data platform across plants with traceability and auditability designed in, not bolted on.",
+      "4-5": "Automate end-to-end provenance (raw signal → feature → model → action → outcome) so data lineage is always auditable."
+    }
+  },
+  4: {
+    name: "Governance & Sustenance",
+    target: "AI runs under safety-, quality- and cyber-grade governance with clear accountability, explainability and a full model lifecycle — so AI scales without compromising safety, compliance or uptime.",
+    ladder: [
+      "No AI-specific governance; safety, security and accountability handled case by case.",
+      "Basic controls on a few deployments; compliance and lifecycle are manual and reactive.",
+      "Governance ensures AI doesn't compromise safety/quality; security and compliance are managed.",
+      "Accountability, explainability and model lifecycle controls are standardized across plants.",
+      "Governance is proactive and self-monitoring; drift, incidents and audits are handled by design."
+    ],
+    moves: {
+      "1-2": "Define who is accountable for each AI decision and put basic safety, quality and cybersecurity checks around current deployments.",
+      "2-3": "Establish governance that keeps AI from compromising safety/quality, plus compliance and OT-security controls for AI in production.",
+      "3-4": "Standardize explainability, decision rights and a model lifecycle (monitoring, drift, retraining, incident management) across sites.",
+      "4-5": "Make governance proactive — automated drift detection, audit trails and self-monitoring built into every model."
+    }
+  },
+  5: {
+    name: "Value Realization & Scalability",
+    target: "Every AI initiative has a measured baseline and tracked ROI, and proven use cases scale PoC → pilot → plant → enterprise on standardized, reusable architecture with a clear operating model.",
+    ladder: [
+      "Value is anecdotal; no baselines, ROI tracking, or path beyond pilots.",
+      "Some KPIs defined; benefits tracked informally; scaling is one-off and manual.",
+      "Outcomes defined with baselines and tracked ROI; first repeatable scaling underway.",
+      "Standardized templates and architecture let use cases scale across plants reliably.",
+      "A funded operating model runs AI as long-term production systems at enterprise scale."
+    ],
+    moves: {
+      "1-2": "Pick your highest-value use cases and define measurable outcomes (OEE, yield, scrap, FPY, MTBF/MTTR, energy) with current baselines.",
+      "2-3": "Track realized benefits against baselines and run your first PoC → pilot → plant scaling with a repeatable method.",
+      "3-4": "Build reusable templates (data models, reference architectures, MLOps, SOPs) so use cases scale across plants without rework.",
+      "4-5": "Put a funded governance/ownership model in place to run AI as sustained production systems enterprise-wide."
+    }
+  },
+  6: {
+    name: "AI in Manufacturing",
+    target: "AI is embedded in core operations — throughput, quality, predictive maintenance, energy — and integrated into MES/SCADA so it runs live on the shopfloor, not as disconnected pilots.",
+    ladder: [
+      "Few or no AI use cases live in production; mostly experiments off-line.",
+      "Isolated AI use cases on a line or two (e.g. a vision check), not integrated into workflows.",
+      "AI delivers measurable gains in throughput, quality, maintenance or energy on key lines.",
+      "AI is integrated into MES/SCADA/automation and runs across multiple plants.",
+      "AI is pervasive across operations and self-optimizing, sustained in live production."
+    ],
+    moves: {
+      "1-2": "Deploy one high-value use case in production (e.g. defect detection or predictive maintenance) on your best-instrumented line.",
+      "2-3": "Prove measurable gains (throughput, FPY, downtime or energy) and document the before/after impact.",
+      "3-4": "Integrate AI into MES/SCADA/automation workflows and replicate proven use cases across lines and plants.",
+      "4-5": "Move toward closed-loop, self-optimizing operations sustained reliably in live production."
+    }
+  },
+  7: {
+    name: "AI Business",
+    target: "A disciplined pipeline selects and prioritizes AI use cases by ROI, industrializes them through a proven playbook, and drives adoption across shifts and sites with strong cross-functional collaboration.",
+    ladder: [
+      "Use cases are opportunistic; no prioritization, ROI discipline, or change management.",
+      "Some prioritization and ROI estimates; production hand-off and adoption are inconsistent.",
+      "A structured process prioritizes by ROI; a playbook moves pilots toward production.",
+      "Cross-functional collaboration and change management scale AI across shifts and sites.",
+      "AI delivery is an industrialized capability with proven ROI and durable plant adoption."
+    ],
+    moves: {
+      "1-2": "Create a simple intake to identify and rank candidate AI use cases across plants by value and feasibility.",
+      "2-3": "Quantify ROI before/during/after and build a pilot-to-production playbook (validation, SOP updates, acceptance criteria).",
+      "3-4": "Strengthen cross-functional collaboration (Ops, Quality, Maintenance, EHS, IT/OT) and structured change management across sites.",
+      "4-5": "Industrialize AI delivery as a repeatable capability with proven ROI and adoption that holds across shifts and cultures."
+    }
+  }
+};
+
+// ===== EMBEDDED: Word report builder =====
+// ============================================================================
+// AI READINESS — WORD REPORT BUILDER (shared by browser button + Node sample)
+// buildReport(docx, IMPERATIVES, ROADMAP, data) -> docx.Document
+// data = { title, date, place, participants:[{name,role,submitted}],
+//          responses:[{participant_id|name, qid, imperative, score}] }
+// Mirrors the L&T "Workshop Outcomes & Insights Report" layout, LTTS-branded.
+// ============================================================================
+function buildReport(docx, IMPERATIVES, ROADMAP, data) {
+  const {
+    Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+    Header, Footer, AlignmentType, LevelFormat, HeadingLevel, BorderStyle,
+    WidthType, ShadingType, VerticalAlign, PageNumber, PageBreak, TabStopType, TabStopPosition
+  } = docx;
+
+  // ---- palette (matches sample) ----
+  const C = {
+    brand:"1F4E79", brand2:"2E74B5", ink:"212934", soft:"3A4A63", mute:"6B7686",
+    line:"CBD5E2", green:"1E7A46", greenBg:"E4F0E8", greenLn:"BBD9C4",
+    red:"B23A36", redBg:"FBECEB", redLn:"EBC9C6", amber:"B7860B",
+    blueBg:"E9F0F8", headRow:"1F4E79", zebra:"F4F7FB", lav:"EFEAF7", amberBg:"FBF3DC"
+  };
+  const F = "Calibri";
+
+  // ---- analytics ----
+  const ALLQ = IMPERATIVES.flatMap(im => im.q.map(([qid,dim,text]) => ({qid,dim,text,imp:im.n,name:im.name,hex:im.hex})));
+  const QBYID = Object.fromEntries(ALLQ.map(q=>[q.qid,q]));
+  const R = data.responses;
+  const mean = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
+  const std  = a => { if(a.length<2) return 0; const m=mean(a); return Math.sqrt(mean(a.map(x=>(x-m)**2))); };
+  const pid  = r => r.participant_id || r.name;
+  const qScores = qid => R.filter(r=>r.qid===qid).map(r=>r.score);
+  const impScore = n => mean(R.filter(r=>r.imperative===n).map(r=>r.score));
+  const impStd   = n => std(R.filter(r=>r.imperative===n).map(r=>r.score));
+  const overall  = mean(R.map(r=>r.score));
+  const respCount= new Set(R.map(pid)).size;
+  const fmt = v => v==null||isNaN(v) ? "–" : (Math.round(v*10)/10).toFixed(1);
+
+  const BANDS = [
+    {min:0,   lvl:1, label:"Experimental"},
+    {min:1.8, lvl:2, label:"Operational"},
+    {min:2.6, lvl:3, label:"Value-Driven"},
+    {min:3.4, lvl:4, label:"Strategic"},
+    {min:4.3, lvl:5, label:"AI-Native"},
+  ];
+  const bandOf = v => { let b=BANDS[0]; for(const t of BANDS) if(v>=t.min) b=t; return b; };
+  const lvlOf  = v => bandOf(v).lvl;
+  const scoreHex = v => v==null?C.mute : v<2?C.red : v<2.8?C.amber : v<3.6?C.green : C.green;
+
+  // per-imperative roll-up sorted by score
+  const imps = IMPERATIVES.map(im => ({
+    n:im.n, name:im.name, hex:im.hex, score:impScore(im.n), std:impStd(im.n),
+    band:impScore(im.n)!=null?bandOf(impScore(im.n)):null
+  }));
+  const ranked = imps.filter(i=>i.score!=null).sort((a,b)=>b.score-a.score);
+  const strongest = ranked[0], weakest = ranked[ranked.length-1];
+  // most contested question
+  let contested=null;
+  ALLQ.forEach(q=>{ const v=qScores(q.qid); if(v.length>=2){ const s=std(v); if(!contested||s>contested.s) contested={q,s,m:mean(v)}; }});
+
+  // ---- helpers to build content ----
+  const PT = n => n*2; // half-points for size
+  const run = (t,o={}) => new TextRun({ text:t, font:F, size:o.size||PT(11), bold:o.bold, italics:o.italics, color:o.color||C.ink, allCaps:o.caps });
+  const para = (children,o={}) => new Paragraph({
+    children: Array.isArray(children)?children:[children],
+    alignment:o.align, spacing:{ before:o.before??0, after:o.after??120, line:o.line||276 },
+    indent:o.indent, border:o.border, keepNext:o.keepNext
+  });
+  const txt = (t,o={}) => para([run(t,o)], o);
+
+  function sectionHeading(n, title){
+    return new Paragraph({
+      spacing:{ before:320, after:120 },
+      border:{ bottom:{ style:BorderStyle.SINGLE, size:10, color:C.brand2, space:6 } },
+      children:[ new TextRun({ text:`${n}. ${title}`, font:F, size:PT(16), bold:true, color:C.brand }) ]
+    });
+  }
+  function subHeading(title){
+    return new Paragraph({ spacing:{ before:220, after:100 },
+      children:[ new TextRun({ text:title, font:F, size:PT(13), bold:true, color:C.brand2 }) ]});
+  }
+  const border1 = { style:BorderStyle.SINGLE, size:4, color:C.line };
+  const cellBorders = { top:border1, bottom:border1, left:border1, right:border1 };
+  function cell(content, o={}){
+    const kids = Array.isArray(content)?content:[ new Paragraph({ children:[run(String(content),{size:o.size||PT(10),bold:o.bold,color:o.color})], alignment:o.align, spacing:{after:0,before:0,line:248} }) ];
+    return new TableCell({
+      width:{ size:o.w, type:WidthType.DXA }, borders:cellBorders,
+      shading: o.fill?{ fill:o.fill, type:ShadingType.CLEAR }:undefined,
+      verticalAlign: o.valign||VerticalAlign.CENTER,
+      margins:{ top:60, bottom:60, left:110, right:110 },
+      children: kids
+    });
+  }
+  function headerCell(label, w, align){
+    return cell([ new Paragraph({ children:[run(label,{bold:true,color:"FFFFFF",size:PT(10)})], alignment:align, spacing:{after:0,before:0} }) ], { w, fill:C.headRow });
+  }
+  // unicode score bar like the sample
+  function bar(score, colorHex){
+    const total=34; const filled = score==null?0:Math.round(score/5*total);
+    return "█".repeat(filled) + "░".repeat(total-filled);
+  }
+  function scoreBarRow(label, score, w0, w1, w2, zebra){
+    const col = scoreHex(score);
+    return new TableRow({ children:[
+      cell([ new Paragraph({ children:[run(label,{size:PT(10)})], spacing:{after:0,before:0} }) ], { w:w0, fill:zebra?C.zebra:undefined }),
+      cell([ new Paragraph({ children:[new TextRun({ text:bar(score), font:"Consolas", size:PT(9), color:col })], spacing:{after:0,before:0} }) ], { w:w1, fill:zebra?C.zebra:undefined }),
+      cell([ new Paragraph({ children:[run(fmt(score),{bold:true,color:col,size:PT(10.5)})], alignment:AlignmentType.CENTER, spacing:{after:0,before:0} }) ], { w:w2, fill:zebra?C.zebra:undefined }),
+    ]});
+  }
+  // tinted stat card row (cover + section stat strips)
+  function statCards(cards){ // [{big, label, fill, color}]
+    const w = Math.floor(9360/cards.length);
+    return new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:cards.map(()=>w),
+      borders:{ top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE},insideHorizontal:{style:BorderStyle.NONE},insideVertical:{style:BorderStyle.NONE} },
+      rows:[ new TableRow({ children: cards.map(c => new TableCell({
+        width:{size:w,type:WidthType.DXA}, shading:{ fill:c.fill, type:ShadingType.CLEAR },
+        borders:{ top:{style:BorderStyle.SINGLE,size:2,color:"FFFFFF"},bottom:{style:BorderStyle.SINGLE,size:2,color:"FFFFFF"},left:{style:BorderStyle.SINGLE,size:6,color:"FFFFFF"},right:{style:BorderStyle.SINGLE,size:6,color:"FFFFFF"} },
+        margins:{ top:140, bottom:140, left:80, right:80 },
+        children:[
+          new Paragraph({ alignment:AlignmentType.CENTER, spacing:{after:30,before:0}, children:[ new TextRun({ text:c.big, font:F, size:PT(24), bold:true, color:c.color||C.brand }) ] }),
+          new Paragraph({ alignment:AlignmentType.CENTER, spacing:{after:0,before:0}, children:[ new TextRun({ text:c.label, font:F, size:PT(9), color:C.soft }) ] }),
+        ]
+      })) }) ]
+    });
+  }
+  // callout box (strength / gap)
+  function calloutBox(tag, title, scoreText, body, kind){
+    const bg = kind==="strength"?C.greenBg:C.redBg;
+    const ln = kind==="strength"?C.greenLn:C.redLn;
+    const accent = kind==="strength"?C.green:C.red;
+    return new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:[9360],
+      borders:{ top:{style:BorderStyle.SINGLE,size:4,color:ln},bottom:{style:BorderStyle.SINGLE,size:4,color:ln},left:{style:BorderStyle.SINGLE,size:18,color:accent},right:{style:BorderStyle.SINGLE,size:4,color:ln} },
+      rows:[ new TableRow({ children:[ new TableCell({
+        width:{size:9360,type:WidthType.DXA}, shading:{ fill:bg, type:ShadingType.CLEAR },
+        margins:{ top:110, bottom:110, left:160, right:140 },
+        children:[
+          new Paragraph({ spacing:{after:40,before:0}, children:[
+            new TextRun({ text:tag+"   ", font:F, size:PT(9), bold:true, color:accent, allCaps:true }),
+            new TextRun({ text:title, font:F, size:PT(11.5), bold:true, color:C.ink }),
+            new TextRun({ text:"     "+scoreText, font:F, size:PT(10.5), bold:true, color:accent }),
+          ]}),
+          new Paragraph({ spacing:{after:0,before:0,line:264}, children:[ run(body,{size:PT(10.5),color:C.soft}) ]})
+        ]
+      }) ]}) ]
+    });
+  }
+  // 3-col action table (roadmap horizons)
+  function actionTable(rows){ // rows: [{action, lead, why}]
+    const W=[4360, 2400, 2600];
+    const head = new TableRow({ tableHeader:true, children:[ headerCell("Action",W[0],AlignmentType.LEFT), headerCell("Who should lead",W[1],AlignmentType.LEFT), headerCell("Why it matters",W[2],AlignmentType.LEFT) ]});
+    const body = rows.map((r,i)=> new TableRow({ children:[
+      cell([ new Paragraph({ children:[run(r.action,{size:PT(10)})], spacing:{after:0,before:0,line:248} }) ], { w:W[0], fill:i%2?C.zebra:undefined, valign:VerticalAlign.TOP }),
+      cell([ new Paragraph({ children:[run(r.lead,{size:PT(10),bold:true,color:C.brand2})], spacing:{after:0,before:0,line:248} }) ], { w:W[1], fill:i%2?C.zebra:undefined, valign:VerticalAlign.TOP }),
+      cell([ new Paragraph({ children:[run(r.why,{size:PT(10),color:C.soft})], spacing:{after:0,before:0,line:248} }) ], { w:W[2], fill:i%2?C.zebra:undefined, valign:VerticalAlign.TOP }),
+    ]}));
+    return new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:W, rows:[head,...body] });
+  }
+  const bullet = (t,o={}) => new Paragraph({ numbering:{reference:"rmBullets",level:0}, spacing:{after:90,before:0,line:264}, children:[run(t,{size:o.size||PT(10.5),color:o.color||C.soft, bold:o.bold})] });
+
+  // ====================================================================
+  // BUILD CONTENT
+  // ====================================================================
+  const body = [];
+
+  // ---------- COVER ----------
+  body.push(
+    new Paragraph({ spacing:{before:2600, after:60}, alignment:AlignmentType.CENTER, children:[ new TextRun({ text:"L&T TECHNOLOGY SERVICES", font:F, size:PT(13), bold:true, color:C.mute, allCaps:true }) ]}),
+    new Paragraph({ spacing:{after:30}, alignment:AlignmentType.CENTER, children:[ new TextRun({ text:"AI Readiness Assessment", font:F, size:PT(30), bold:true, color:C.brand }) ]}),
+    new Paragraph({ alignment:AlignmentType.CENTER, spacing:{after:80}, border:{ bottom:{style:BorderStyle.SINGLE,size:14,color:C.brand2,space:8} }, children:[ new TextRun({ text:"Workshop Outcomes & Insights Report", font:F, size:PT(15), color:C.soft }) ]}),
+    new Paragraph({ alignment:AlignmentType.CENTER, spacing:{before:160, after:260}, children:[ new TextRun({ text:`${data.place||"On-site"}  |  ${data.date}`, font:F, size:PT(11), color:C.mute }) ]}),
+  );
+  body.push(statCards([
+    { big:String(respCount), label:"Participants", fill:C.blueBg, color:C.brand },
+    { big:"35", label:"Dimensions assessed", fill:C.amberBg, color:C.amber },
+    { big:"7", label:"AI imperatives", fill:C.lav, color:"6B3FA0" },
+  ]));
+  body.push(
+    new Paragraph({ alignment:AlignmentType.CENTER, spacing:{before:300, after:20}, children:[ new TextRun({ text:`${fmt(overall)} / 5.0`, font:F, size:PT(22), bold:true, color:C.brand2 }) ]}),
+    new Paragraph({ alignment:AlignmentType.CENTER, spacing:{after:40}, children:[ new TextRun({ text:"Overall AI Readiness Score", font:F, size:PT(13), bold:true, color:C.brand } ) ]}),
+    new Paragraph({ alignment:AlignmentType.CENTER, spacing:{after:0}, children:[ new TextRun({ text:`Confidential  |  ${data.date}`, font:F, size:PT(10), italics:true, color:C.mute }) ]}),
+    new Paragraph({ children:[ new PageBreak() ] })
+  );
+
+  // ---------- 1. PURPOSE ----------
+  body.push(sectionHeading(1,"Purpose and context"));
+  body.push(txt(`This report combines the structured assessment completed by participants with the discussion from the AI Readiness workshop${data.place?` held ${data.place}`:""}. Together they provide a clear picture of where the organization stands today on its manufacturing-AI journey: what the data shows, where stakeholders agree and disagree, and what the evidence suggests as priorities for the road ahead.`));
+  body.push(txt(`${respCount} participant${respCount>1?"s":""} assessed AI readiness across the 7 AI imperatives of the AI Readiness Index for manufacturing — 35 dimensions rated on a 1 to 5 maturity scale, where 3.0 represents solid operational footing and 5.0 represents an AI-native operation.`));
+  body.push(new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:[1872,1872,1872,1872,1872],
+    borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE},insideHorizontal:{style:BorderStyle.NONE},insideVertical:{style:BorderStyle.NONE}},
+    rows:[ new TableRow({ children: BANDS.map(b => new TableCell({ width:{size:1872,type:WidthType.DXA}, shading:{fill:C.zebra,type:ShadingType.CLEAR}, borders:{left:{style:BorderStyle.SINGLE,size:4,color:"FFFFFF"},right:{style:BorderStyle.SINGLE,size:4,color:"FFFFFF"},top:{style:BorderStyle.SINGLE,size:4,color:"FFFFFF"},bottom:{style:BorderStyle.SINGLE,size:4,color:"FFFFFF"}}, margins:{top:90,bottom:90,left:60,right:60}, children:[
+      new Paragraph({ alignment:AlignmentType.CENTER, spacing:{after:20,before:0}, children:[new TextRun({text:String(b.lvl),font:F,bold:true,size:PT(13),color:C.brand2})]}),
+      new Paragraph({ alignment:AlignmentType.CENTER, spacing:{after:0,before:0}, children:[new TextRun({text:b.label,font:F,size:PT(8.5),color:C.soft})]}),
+    ]})) }) ]
+  }));
+  body.push(txt("",{after:60}));
+
+  // ---------- 2. EXECUTIVE SUMMARY ----------
+  body.push(sectionHeading(2,"Executive summary"));
+  body.push(txt(`Across the assessment, a small number of findings emerged with clarity. Taken together they define both the opportunity and the work ahead. The group's overall readiness is ${fmt(overall)} / 5.0 — ${overall!=null?bandOf(overall).label:""}.`));
+  // Generated findings
+  const findings=[];
+  if(weakest) findings.push({t:`${weakest.name} is the most urgent constraint.`, b:`At ${fmt(weakest.score)}/5 it is the lowest-scoring imperative. ${ROADMAP[weakest.n].name} underpins the ability to scale AI elsewhere, and progress here is the clearest near-term priority.`});
+  if(strongest) findings.push({t:`${strongest.name} is a genuine strength to build on.`, b:`At ${fmt(strongest.score)}/5 it is the highest-scoring imperative and the natural proof point for what "good" looks like as other areas catch up.`});
+  if(contested && contested.s>=1.0) findings.push({t:`Stakeholders are not aligned on ${QBYID[contested.q.qid].name}.`, b:`Question ${contested.q.qid} drew the widest spread of any in the assessment (σ=${contested.s.toFixed(1)}), with answers ranging across the scale. That divergence usually signals a visibility or definition gap worth resolving explicitly.`});
+  const foundational = imps.filter(i=>i.score!=null && i.score<2.6 && [3,4].includes(i.n));
+  if(foundational.length) findings.push({t:`The data and governance foundation needs attention before scale.`, b:`${foundational.map(f=>`${f.name} (${fmt(f.score)})`).join(" and ")} ${foundational.length>1?"sit":"sits"} in the lower bands. No amount of ambition at the application layer compensates for a weak foundation underneath it.`});
+  if(strongest && weakest) findings.push({t:`Execution has not yet caught up with intent.`, b:`The gap between the strongest imperative (${fmt(strongest.score)}) and the weakest (${fmt(weakest.score)}) is ${(strongest.score-weakest.score).toFixed(1)} points — the signature of an organization with real momentum that now needs coordination to make it compound.`});
+  findings.slice(0,5).forEach((f,i)=>{
+    body.push(new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:[620,8740],
+      borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE},insideHorizontal:{style:BorderStyle.NONE},insideVertical:{style:BorderStyle.NONE}},
+      rows:[ new TableRow({ children:[
+        new TableCell({ width:{size:620,type:WidthType.DXA}, verticalAlign:VerticalAlign.TOP, margins:{top:40,bottom:40,left:0,right:60}, children:[ new Paragraph({ children:[new TextRun({text:String(i+1),font:F,bold:true,size:PT(15),color:C.brand2})] }) ]}),
+        new TableCell({ width:{size:8740,type:WidthType.DXA}, verticalAlign:VerticalAlign.TOP, margins:{top:40,bottom:120,left:0,right:0}, children:[
+          new Paragraph({ spacing:{after:30,before:0}, children:[run(f.t,{bold:true,size:PT(11),color:C.ink})] }),
+          new Paragraph({ spacing:{after:0,before:0,line:264}, children:[run(f.b,{size:PT(10.5),color:C.soft})] }),
+        ]}),
+      ]}) ]
+    }));
+  });
+
+  // ---------- 3. ABOUT THE ASSESSMENT ----------
+  body.push(sectionHeading(3,"About the assessment"));
+  body.push(txt(`The AI Readiness Index for manufacturing assesses an organization across seven imperatives, each broken into five dimensions, for 35 questions in total. Participants rate where the organization stands today on each — from 1 (experimental) to 5 (AI-native). The framework is designed to move a leadership group from a general sense of "we should do more on AI" to a specific, shared view of exactly where the gaps are and what to do first.`));
+  body.push(subHeading("The seven AI imperatives"));
+  IMPERATIVES.forEach(im=>{
+    body.push(new Paragraph({ spacing:{after:70,before:0,line:264}, indent:{left:120}, children:[
+      new TextRun({ text:`${im.n}. ${im.name}.  `, font:F, bold:true, size:PT(10.5), color:im.hex.replace("#","") }),
+      new TextRun({ text:ROADMAP[im.n].target, font:F, size:PT(10.5), color:C.soft }),
+    ]}));
+  });
+
+  // ---------- 4. SCORES ----------
+  body.push(sectionHeading(4,"Where the organization stands today"));
+  body.push(txt(`The assessment produced scores across all 35 dimensions. The overall average is ${fmt(overall)} out of 5.0. This headline figure masks meaningful variation across imperatives and across individual questions, which the sections that follow address in detail.`));
+  // highest / overall / lowest cards
+  body.push(statCards([
+    { big:fmt(strongest?strongest.score:null), label:strongest?strongest.name:"", fill:C.greenBg, color:C.green },
+    { big:`${fmt(overall)} / 5.0`, label:`${respCount} participants · 35 dimensions`, fill:C.blueBg, color:C.brand },
+    { big:fmt(weakest?weakest.score:null), label:weakest?weakest.name:"", fill:C.redBg, color:C.red },
+  ]));
+  body.push(txt("",{after:60}));
+  body.push(subHeading("All 7 imperatives — group average"));
+  {
+    const W=[4560,3360,1440];
+    const head=new TableRow({ tableHeader:true, children:[ headerCell("Imperative",W[0],AlignmentType.LEFT), headerCell("Maturity (1–5)",W[1],AlignmentType.LEFT), headerCell("Score",W[2],AlignmentType.CENTER) ]});
+    const rows=[...imps].sort((a,b)=>(b.score??-1)-(a.score??-1)).map((im,i)=> scoreBarRow(`${im.n}. ${im.name}`, im.score, W[0],W[1],W[2], i%2));
+    body.push(new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:W, rows:[head,...rows] }));
+  }
+  body.push(txt("",{after:60}));
+  body.push(subHeading("All 35 dimensions — group average"));
+  {
+    const W=[4560,3360,1440];
+    const head=new TableRow({ tableHeader:true, children:[ headerCell("Dimension",W[0],AlignmentType.LEFT), headerCell("Maturity (1–5)",W[1],AlignmentType.LEFT), headerCell("Score",W[2],AlignmentType.CENTER) ]});
+    const rows=[]; let i=0;
+    IMPERATIVES.forEach(im=> im.q.forEach(([qid,dim])=>{ rows.push(scoreBarRow(`${qid} ${dim}`, qScores(qid).length?mean(qScores(qid)):null, W[0],W[1],W[2], i%2)); i++; }));
+    body.push(new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:W, rows:[head,...rows] }));
+  }
+
+  // ---------- 5. STRENGTHS & PRIORITY GAPS ----------
+  body.push(sectionHeading(5,"Strengths and priority gaps"));
+  body.push(subHeading("Strengths"));
+  body.push(txt("The imperatives below are where the organization is strongest today — a solid foundation for the AI agenda ahead."));
+  const strengths = ranked.slice(0,3);
+  strengths.forEach((im,i)=>{
+    body.push(calloutBox(`Strength 0${i+1}`, im.name, `Score: ${fmt(im.score)}`,
+      `${im.name} is among the highest-rated imperatives at ${fmt(im.score)}/5 (${im.band.label}). ${ROADMAP[im.n].target} This is a strength to lead with and to use as the template for what good looks like elsewhere.`, "strength"));
+    body.push(txt("",{after:60}));
+  });
+  body.push(subHeading("Priority gaps"));
+  body.push(txt("These imperatives scored lowest and represent the highest-priority areas for leadership attention. Because they tend to underpin everything above them, progress here unlocks progress elsewhere."));
+  const gaps = ranked.slice(-3).reverse();
+  gaps.forEach((im,i)=>{
+    const next = ROADMAP[im.n].moves[`${im.band.lvl}-${im.band.lvl+1}`];
+    body.push(calloutBox(`Gap 0${i+1}`, im.name, `Score: ${fmt(im.score)}`,
+      `${im.name} is among the lowest-rated imperatives at ${fmt(im.score)}/5 (${im.band.label}). ${next?("The clearest next move: "+next):ROADMAP[im.n].target}`, "gap"));
+    body.push(txt("",{after:60}));
+  });
+
+  // ---------- 6. WHERE STAKEHOLDERS AGREE AND DISAGREE ----------
+  body.push(sectionHeading(6,"Where stakeholders agree and disagree"));
+  body.push(txt("Beyond the averages, the spread of answers tells its own story. Tight agreement points to a settled view; a wide spread points to a question worth surfacing in the room, because different functions are seeing different realities."));
+  // most divergent imperatives table
+  const byDiv=[...imps].filter(i=>i.score!=null).sort((a,b)=>b.std-a.std);
+  body.push(subHeading("Imperatives with the widest spread of views"));
+  {
+    const W=[5160,2160,2040];
+    const head=new TableRow({ tableHeader:true, children:[ headerCell("Imperative",W[0],AlignmentType.LEFT), headerCell("Avg score",W[1],AlignmentType.CENTER), headerCell("Spread (σ)",W[2],AlignmentType.CENTER) ]});
+    const rows=byDiv.slice(0,5).map((im,i)=> new TableRow({ children:[
+      cell(`${im.n}. ${im.name}`, {w:W[0], fill:i%2?C.zebra:undefined}),
+      cell(fmt(im.score), {w:W[1], align:AlignmentType.CENTER, bold:true, color:scoreHex(im.score), fill:i%2?C.zebra:undefined}),
+      cell(im.std.toFixed(1), {w:W[2], align:AlignmentType.CENTER, bold:true, color: im.std>=1.1?C.red:C.soft, fill:i%2?C.zebra:undefined}),
+    ]}));
+    body.push(new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:W, rows:[head,...rows] }));
+  }
+  if(contested && contested.s>=1.0){
+    body.push(txt("",{after:40}));
+    body.push(txt(`The single most contested question is ${contested.q.qid} — ${QBYID[contested.q.qid].name} (σ=${contested.s.toFixed(1)}, mean ${fmt(contested.m)}). Answers span the scale, which typically reflects either uneven visibility across sites or a genuine difference in how functions define the dimension. It is worth resolving in the room.`,{after:120}));
+  }
+
+  // ---------- 7. ROADMAP ----------
+  body.push(new Paragraph({ children:[ new PageBreak() ]}));
+  body.push(sectionHeading(7,"Roadmap: from current state to AI-native"));
+  body.push(txt(`This section sets out, imperative by imperative, where the organization is today and the concrete steps to climb each maturity rung toward an AI-native operation. The order reflects priority: the lowest-scoring, most foundational imperatives come first, because progress there unlocks the rest.`));
+  // priority-ordered: lowest score first, but data/governance weighted up
+  const roadOrder = [...imps].filter(i=>i.score!=null).sort((a,b)=> (a.score-b.score) || (a.n-b.n));
+  roadOrder.forEach((im,idx)=>{
+    const rc = ROADMAP[im.n];
+    const lvl = im.band.lvl;
+    body.push(new Paragraph({ spacing:{before:260, after:60}, keepNext:true, children:[
+      new TextRun({ text:`Imperative ${im.n}: ${im.name}`, font:F, bold:true, size:PT(13), color:C.brand2 }),
+    ]}));
+    // current/target mini stat line
+    body.push(new Paragraph({ spacing:{after:80,before:0}, keepNext:true, children:[
+      new TextRun({ text:`Current: `, font:F, size:PT(10), color:C.mute }),
+      new TextRun({ text:`${fmt(im.score)} / 5.0 — Level ${lvl} ${im.band.label}`, font:F, bold:true, size:PT(10.5), color:scoreHex(im.score) }),
+      new TextRun({ text:`      Target: `, font:F, size:PT(10), color:C.mute }),
+      new TextRun({ text:`Level 5 AI-Native`, font:F, bold:true, size:PT(10.5), color:C.green }),
+      new TextRun({ text:`      Priority: `, font:F, size:PT(10), color:C.mute }),
+      new TextRun({ text: idx<2?"High":idx<4?"Medium":"Sustain", font:F, bold:true, size:PT(10.5), color: idx<2?C.red:idx<4?C.amber:C.green }),
+    ]}));
+    body.push(new Paragraph({ spacing:{after:100,before:0,line:264}, keepNext:true, children:[
+      run("Where AI-native looks like: ",{bold:true,size:PT(10.5),color:C.ink}), run(rc.target,{size:PT(10.5),color:C.soft})
+    ]}));
+    // ladder table: which rung you're on + the climb
+    const W=[1000,4600,3760];
+    const head=new TableRow({ tableHeader:true, children:[ headerCell("Level",W[0],AlignmentType.CENTER), headerCell("What this rung looks like",W[1],AlignmentType.LEFT), headerCell("Step to reach the next rung",W[2],AlignmentType.LEFT) ]});
+    const rows=[];
+    for(let L=1;L<=5;L++){
+      const isCurrent = L===lvl;
+      const done = L<lvl;
+      const move = rc.moves[`${L}-${L+1}`];
+      const fill = isCurrent ? C.amberBg : (done? "EFF4EE" : undefined);
+      rows.push(new TableRow({ children:[
+        cell([ new Paragraph({ alignment:AlignmentType.CENTER, spacing:{after:0,before:0}, children:[
+          new TextRun({ text:String(L), font:F, bold:true, size:PT(11), color: isCurrent?C.amber: done?C.green: C.mute }),
+          ...(isCurrent?[new TextRun({text:"\nyou are here",font:F,size:PT(7),color:C.amber})]:done?[new TextRun({text:"\n✓",font:F,size:PT(9),color:C.green})]:[])
+        ]}) ], {w:W[0], fill, valign:VerticalAlign.CENTER}),
+        cell([ new Paragraph({ spacing:{after:0,before:0,line:240}, children:[run(rc.ladder[L-1],{size:PT(9.5), color: isCurrent?C.ink:C.soft, bold:isCurrent})] }) ], {w:W[1], fill, valign:VerticalAlign.TOP}),
+        cell([ new Paragraph({ spacing:{after:0,before:0,line:240}, children:[ L<5?run(move,{size:PT(9.5),color: L>=lvl?C.ink:C.mute, bold:(L===lvl)}):run("Sustain and self-optimize — AI-native reached.",{size:PT(9.5),italics:true,color:C.green}) ] }) ], {w:W[2], fill, valign:VerticalAlign.TOP}),
+      ]}));
+    }
+    body.push(new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:W, rows:[head,...rows] }));
+    body.push(txt("",{after:80}));
+  });
+
+  // ---------- 8. SEQUENCED NEXT STEPS (HORIZONS) ----------
+  body.push(new Paragraph({ children:[ new PageBreak() ]}));
+  body.push(sectionHeading(8,"Sequenced next steps"));
+  body.push(txt("The imperative roadmaps above describe the destination for each area. This section sequences the immediate moves across three horizons, so the organization knows what to start now, what to structure next, and what those efforts are designed to enable. Some of these may already be underway; where so, treat them as validation."));
+  // Build horizon actions from the lowest imperatives' next moves
+  const low3 = roadOrder.slice(0,3);
+  const mid3 = roadOrder.slice(0, Math.min(5, roadOrder.length));
+  body.push(subHeading("Horizon 1 — Immediate (next 30 to 90 days)"));
+  body.push(txt("High-impact, low-dependency actions that should begin without waiting for broader decisions.",{after:120}));
+  body.push(actionTable(low3.map(im=>{
+    const L=im.band.lvl; return { action: ROADMAP[im.n].moves[`${L}-${L+1}`]||ROADMAP[im.n].moves["1-2"], lead: leadFor(im.n), why:`Moves ${im.name} off its current ${im.band.label} band — the lowest-scoring area at ${fmt(im.score)}.` };
+  })));
+  body.push(txt("",{after:80}));
+  body.push(subHeading("Horizon 2 — Near-term (3 to 9 months)"));
+  body.push(txt("Structural decisions and investments that determine whether momentum compounds.",{after:120}));
+  body.push(actionTable(mid3.map(im=>{
+    const L=Math.min(4, im.band.lvl+1); return { action: ROADMAP[im.n].moves[`${L}-${L+1}`]||ROADMAP[im.n].moves[`${im.band.lvl}-${im.band.lvl+1}`]||ROADMAP[im.n].target, lead: leadFor(im.n), why:`Builds ${im.name} toward Level ${L+1} on a repeatable footing.` };
+  })));
+  body.push(txt("",{after:80}));
+  body.push(subHeading("Horizon 3 — Strategic (9 to 24 months)"));
+  body.push(txt("The enterprise outcomes the first two horizons are designed to enable.",{after:120}));
+  [ "AI embedded in core production (throughput, quality, predictive maintenance, energy) and integrated into MES/SCADA, running live rather than as isolated pilots.",
+    "A governed, end-to-end data foundation with provenance from raw signal to outcome that any new use case can build on.",
+    "AI running under safety-, quality- and cyber-grade governance with clear accountability and a managed model lifecycle.",
+    "Proven use cases scaling PoC → pilot → plant → enterprise on standardized, reusable architecture with tracked ROI.",
+    "A funded AI operating model with role-based literacy across the workforce, so AI is pulled by the plants rather than pushed from the centre.",
+  ].forEach(t=> body.push(bullet(t)));
+
+  // ---------- 9. CLOSING ----------
+  body.push(sectionHeading(9,"Closing reflection"));
+  body.push(txt(`The assessment shows an organization with real, uneven AI momentum: clear strengths to build on${strongest?` such as ${strongest.name}`:""}, and clear foundational gaps to close${weakest?`, beginning with ${weakest.name}`:""}. The overall readiness of ${fmt(overall)} / 5.0 is a starting line, not a verdict.`));
+  body.push(txt("The path from here is not about doing everything at once. It is about sequencing: stabilize the data and governance foundation, prove value on the highest-readiness use cases, scale what works on standardized architecture, and build the literacy and operating model that let AI compound across plants. The imperative roadmaps in this report set out exactly how to climb each rung.",{after:120}));
+  body.push(new Paragraph({ spacing:{before:200}, alignment:AlignmentType.CENTER, children:[ new TextRun({ text:"— Prepared by L&T Technology Services · AI Readiness Practice —", font:F, size:PT(9.5), italics:true, color:C.mute }) ]}));
+
+  // small helper used above (declared here so hoisting covers earlier calls)
+  function leadFor(n){ return ({1:"Plant leadership + AI sponsor",2:"HR + AI CoE",3:"IT/OT + Data owners",4:"Quality/Safety + IT Security",5:"Operations + Finance",6:"Operations + Engineering",7:"AI CoE + BU leads"})[n]||"AI CoE"; }
+
+  // ====================================================================
+  // DOCUMENT
+  // ====================================================================
+  return new Document({
+    creator:"L&T Technology Services", title:`AI Readiness Assessment — ${data.title}`,
+    styles:{ default:{ document:{ run:{ font:F, size:PT(11), color:C.ink } } } },
+    numbering:{ config:[ { reference:"rmBullets", levels:[ { level:0, format:LevelFormat.BULLET, text:"•", alignment:AlignmentType.LEFT, style:{ run:{color:C.brand2}, paragraph:{ indent:{left:460,hanging:260} } } } ] } ] },
+    sections:[{
+      properties:{ page:{ size:{ width:12240, height:15840 }, margin:{ top:1180, right:1440, bottom:1180, left:1440 } } },
+      headers:{ default:new Header({ children:[ new Paragraph({
+        tabStops:[{ type:TabStopType.RIGHT, position:9360 }],
+        border:{ bottom:{ style:BorderStyle.SINGLE, size:6, color:C.brand2, space:4 } }, spacing:{after:0},
+        children:[ new TextRun({ text:"L&T Technology Services  |  AI Readiness Assessment", font:F, size:PT(8.5), color:C.brand }), new TextRun({ text:"\tConfidential", font:F, size:PT(8.5), italics:true, color:C.mute }) ]
+      }) ]}) },
+      footers:{ default:new Footer({ children:[ new Paragraph({
+        tabStops:[{ type:TabStopType.RIGHT, position:9360 }],
+        border:{ top:{ style:BorderStyle.SINGLE, size:6, color:C.line, space:4 } }, spacing:{before:0},
+        children:[ new TextRun({ text:data.date, font:F, size:PT(8.5), color:C.mute }), new TextRun({ children:["\tPage ", PageNumber.CURRENT], font:F, size:PT(8.5), color:C.mute }) ]
+      }) ]}) },
+      children: body
+    }]
+  });
+}
+
+
 const ALLQ = IMPERATIVES.flatMap(im => im.q.map(([qid,dim,text]) => ({qid,dim,text,imp:im.n,hex:im.hex})));
 const QBYID = Object.fromEntries(ALLQ.map(q=>[q.qid,q]));
 const MATURITY = [
@@ -447,7 +1002,46 @@ function Home(){
       const d=document.createDocumentFragment(); d.append(f,b); return d; })()
   );
   wrap.append(card, el("div",{class:"home-foot"},"7 imperatives · 35 questions · live aggregation"));
+  // Past assessments — retrieve any saved customer session
+  const past=el("div",{class:"past"});
+  past.append(el("div",{class:"past-h"}, el("span",{class:"pt-title"},"Past assessments"), el("span",{class:"pt-count",id:"past-count"},"")));
+  const list=el("div",{class:"past-list",id:"past-list"}, el("div",{class:"past-empty"},"Loading saved sessions…"));
+  past.append(list);
+  wrap.append(past);
   app.append(wrap);
+  loadPastSessions(list);
+}
+
+async function loadPastSessions(list){
+  const {data:sessions,error}=await sb.from("ar_sessions").select("*").order("created_at",{ascending:false});
+  if(error || !sessions){ list.innerHTML=""; list.append(el("div",{class:"past-empty"},"Could not load saved sessions")); return; }
+  if(sessions.length===0){ list.innerHTML=""; list.append(el("div",{class:"past-empty"},"No saved assessments yet — create one above and it'll appear here.")); return; }
+  // fetch counts + scores per session in two batched queries
+  const ids=sessions.map(s=>s.id);
+  const [{data:parts},{data:resp}]=await Promise.all([
+    sb.from("ar_participants").select("session_id").in("session_id",ids),
+    sb.from("ar_responses").select("session_id,score").in("session_id",ids),
+  ]);
+  const pCount={}, rSum={}, rN={};
+  (parts||[]).forEach(p=>pCount[p.session_id]=(pCount[p.session_id]||0)+1);
+  (resp||[]).forEach(r=>{ rSum[r.session_id]=(rSum[r.session_id]||0)+r.score; rN[r.session_id]=(rN[r.session_id]||0)+1; });
+  const band=v=>{ if(v==null)return"var(--line)"; if(v<1.8)return"#D6453F"; if(v<2.6)return"#E6A21A"; if(v<3.4)return"#0D9488"; if(v<4.3)return"#3B6FE0"; return"#16A34A"; };
+  list.innerHTML="";
+  $("#past-count").textContent=`${sessions.length} saved`;
+  sessions.forEach(s=>{
+    const n=rN[s.id]||0; const avg=n? rSum[s.id]/n : null;
+    const d=new Date(s.created_at);
+    const dateStr=d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+    const np=pCount[s.id]||0;
+    list.append(el("button",{class:"sess-card",onclick:()=>{ location.href=`${baseURL()}?present=1&s=${s.id}`; }},
+      el("div",{class:"sc-score",style:`background:${band(avg)}`}, avg==null?"–":avg.toFixed(1)),
+      el("div",{class:"sc-mid"},
+        el("div",{class:"sc-title"}, s.title||"Untitled assessment"),
+        el("div",{class:"sc-meta"}, `${dateStr} · ${np} participant${np===1?"":"s"}${n? "":" · no responses yet"}`)
+      ),
+      el("div",{class:"sc-code"}, s.id)
+    ));
+  });
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -809,11 +1403,13 @@ async function Presenter(session){
       sess.status=sess.status==="revealed"?"open":"revealed";
       toast(sess.status==="revealed"?"Results revealed":"Results hidden");
     }}, el("span",{html: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="#fff" stroke-width="2"/></svg>'}), "Show results");
+    const report=el("button",{class:"btn-report",onclick:(e)=>downloadReport(e.currentTarget)},
+      el("span",{html:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M14 3v4a1 1 0 001 1h4M5 3h9l5 5v11a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 13h8M8 17h5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>'}), "Download report");
     const pill=el("div",{class:"join-pill"},
       el("div",{class:"jp-code",html:`<small>Join code</small>${session}`}),
       el("div",{class:"qrbox"}, el("div",{id:"qr-box",style:"width:120px;height:120px;display:grid;place-items:center"}))
     );
-    right.append(reveal,pill);
+    right.append(report,reveal,pill);
     head.append(right);
     main.append(head);
 
@@ -998,6 +1594,37 @@ async function Presenter(session){
     dash.append(rightCol);
     main.append(dash);
     return main;
+  }
+
+  // ── WORD REPORT ───────────────────────────────────────────────────────
+  async function downloadReport(btn){
+    if(!window.docx){ toast("Report library still loading — try again in a moment"); return; }
+    const label = btn ? btn.querySelector("span:last-child")||btn : null;
+    const orig = btn ? btn.lastChild.textContent : "";
+    if(btn){ btn.disabled=true; btn.lastChild.textContent="Building…"; }
+    try{
+      await loadAll(); // freshest data
+      if(responses.length===0){ toast("No responses yet — nothing to report"); return; }
+      const now=new Date();
+      const monthYear=now.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+      const data={
+        title: sess.title || "AI Readiness Assessment",
+        date: monthYear,
+        place: null,
+        participants: participants.map(p=>({name:p.name,role:p.role,submitted:p.submitted})),
+        responses: responses.map(r=>({participant_id:r.participant_id,qid:r.qid,imperative:r.imperative,score:r.score})),
+      };
+      const doc = buildReport(window.docx, IMPERATIVES, ROADMAP, data);
+      const blob = await window.docx.Packer.toBlob(doc);
+      const safe = (sess.title||"AI_Readiness").replace(/[^a-z0-9]+/gi,"_").replace(/^_|_$/g,"").slice(0,40);
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download=`${safe}_AI_Readiness_Report.docx`;
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+      toast("Report downloaded");
+    }catch(err){ console.error(err); toast("Could not generate report — see console"); }
+    finally{ if(btn){ btn.disabled=false; btn.lastChild.textContent=orig||"Download report"; } }
   }
 
   // ── RADAR (flower) ────────────────────────────────────────────────────
