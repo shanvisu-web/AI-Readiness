@@ -118,6 +118,24 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .bar .v{text-align:right;font-family:var(--mono);font-size:18px;font-variant-numeric:tabular-nums}
 .bar .v small{display:block;color:var(--muted);font-size:11px;font-family:var(--font)}
 .big .bar .lab{font-size:20px} .big .bar .tr{height:26px;border-radius:13px} .big .bar .v{font-size:24px}
+/* column chart (Q2) */
+.cols{display:flex;gap:10px;align-items:flex-end;margin-top:14px;height:300px;overflow-x:auto;padding-bottom:4px}
+.col{flex:1 1 0;min-width:84px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px}
+.col .cv{font-family:var(--mono);font-size:18px;font-variant-numeric:tabular-nums} .col .cv small{display:block;font-size:11px;color:var(--muted);font-family:var(--font);text-align:center}
+.col .cb{width:100%;max-width:90px;background:var(--blue);border-radius:10px 10px 4px 4px;transition:height .5s;min-height:4px}
+.col.top .cb{background:var(--top)}
+.col .cn{font-size:13px;line-height:1.2;text-align:center;color:var(--fg);font-weight:600;height:4.9em;overflow:hidden}
+.big .cols{height:380px} .big .col .cv{font-size:24px} .big .col .cn{font-size:15px}
+/* donut (Q3) */
+.donut{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:24px;align-items:center;margin-top:14px}
+.donut svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-direction:column;gap:10px}
+.legend div{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:12px;align-items:center;font-size:16px}
+.legend i{width:18px;height:18px;border-radius:5px;display:block}
+.legend .ln{font-weight:600} .legend .ls{display:block;font-size:13px;color:var(--muted);font-weight:400}
+.legend .lv{font-family:var(--mono);font-size:18px;font-variant-numeric:tabular-nums;text-align:right} .legend .lv small{display:block;font-size:11px;color:var(--muted);font-family:var(--font)}
+.big .legend div{font-size:19px} .big .legend .lv{font-size:24px}
+@media (max-width:760px){ .donut{grid-template-columns:1fr} .donut svg{max-width:260px;margin:0 auto} }
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .chip{font-size:13px;padding:4px 10px;border-radius:999px;background:var(--tint);border:1px solid var(--line)}
 .chip.done{background:var(--okbg);border-color:var(--ok)}
@@ -448,7 +466,17 @@ function agg(q){ var P=host.participants, n=0, rows;
     rows.forEach(function(r){ r.share=n?r.votes/n:0; r.value=r.votes; r.meta = n? Math.round(r.share*100)+"% of members" : ""; r.label=r.votes+"<small>votes</small>"; }); rows.sort(function(a,b){ return b.votes-a.votes; }); return {n:n,rows:rows,unit:"votes (3 per member)"}; }
   var qq=Q[q]; rows=qq.opts.map(function(o,i){ return {i:i,name:o[0]+(q==="rm"?" · "+o[1]:""),votes:0}; }); P.forEach(function(p){ var a=p.answers&&p.answers[q]; if(!a) return; var idx = q==="rm"? qq.keys.indexOf(a.pick) : a.pick; if(rows[idx]){ rows[idx].votes++; n++; } });
   rows.forEach(function(r){ r.share=n?r.votes/n:0; r.value=r.votes; r.meta = n? Math.round(r.share*100)+"%" : ""; r.label=r.votes+"<small>"+(r.votes===1?"member":"members")+"</small>"; }); rows.sort(function(a,b){ return b.votes-a.votes; }); return {n:n,rows:rows,unit:"one choice per member"}; }
+var PALETTE=["#112868","#064CC8","#0E8A8A","#C9A200","#6B7A99","#7DC242","#B4541A"];
+function columns(a){ var top=a.rows[0].value, maxShare=Math.max.apply(null,a.rows.map(function(r){ return r.share; }))||1;
+  return '<div class="cols">'+a.rows.map(function(r){ return '<div class="col'+(r.value===top&&top>0?" top":"")+'"><div class="cv">'+r.value+'<small>'+Math.round(r.share*100)+'%</small></div><div class="cb" style="height:'+Math.max(2,Math.round(r.share/maxShare*100))+'%"></div><div class="cn">'+esc(r.name)+'</div></div>'; }).join("")+'</div>'; }
+function donut(a){ var R=15.9155, off=25, segs='', acc=0; var rows=a.rows.slice();
+  rows.forEach(function(r,i){ var pct=r.share*100; if(pct>0){ segs+='<circle r="'+R+'" cx="21" cy="21" fill="transparent" stroke="'+PALETTE[i%PALETTE.length]+'" stroke-width="6" stroke-dasharray="'+pct.toFixed(2)+' '+(100-pct).toFixed(2)+'" stroke-dashoffset="'+(off-acc).toFixed(2)+'"></circle>'; } acc+=pct; });
+  var w=rows[0];
+  return '<div class="donut"><svg viewBox="0 0 42 42" role="img" aria-label="Share of members per option"><circle r="'+R+'" cx="21" cy="21" fill="transparent" stroke="#E8F0FD" stroke-width="6"></circle>'+segs+'<text x="21" y="20.2" text-anchor="middle" font-size="7" font-weight="700" fill="#112868" font-family="IBM Plex Sans, Arial, sans-serif">'+Math.round(w.share*100)+'%</text><text x="21" y="25" text-anchor="middle" font-size="2.6" fill="#5A6684" font-family="IBM Plex Sans, Arial, sans-serif">'+esc(w.name.length>22?w.name.slice(0,21)+'…':w.name)+'</text></svg>'+
+    '<div class="legend">'+rows.map(function(r,i){ return '<div><i style="background:'+PALETTE[i%PALETTE.length]+'"></i><span><span class="ln">'+esc(r.name)+'</span></span><span class="lv">'+r.value+'<small>'+Math.round(r.share*100)+'%</small></span></div>'; }).join("")+'</div></div>'; }
 function chart(q, big){ var qq=Q[q], a=agg(q), top=a.rows.length?a.rows[0].value:0;
+  var body = !a.n ? '<p class="empty">Waiting for the first answer…</p>' : (q==="q2" ? columns(a) : (q==="q3" ? donut(a) : null));
+  if(body) return '<div class="card'+(big?" big":"")+'"><div class="qhead"><div class="qnum">'+esc(qq.num)+'</div><div><p class="qtag">'+esc(qq.tag)+'</p><h2 class="q">'+esc(qq.q)+'</h2><p class="how">'+a.n+' answered · '+esc(a.unit)+'</p></div></div>'+body+'</div>';
   return '<div class="card'+(big?" big":"")+'"><div class="qhead"><div class="qnum">'+esc(qq.num)+'</div><div><p class="qtag">'+esc(qq.tag)+'</p><h2 class="q">'+esc(qq.q)+'</h2><p class="how">'+a.n+' answered · '+esc(a.unit)+'</p></div></div>'+
     (a.n? '<div class="bars">'+a.rows.map(function(r){ return '<div class="bar'+(r.value===top&&top>0?" top":"")+'"><div><div class="lab"><span class="n">'+esc(r.name)+'</span><span class="m">'+esc(r.meta)+'</span></div><div class="tr"><div class="fl" style="width:'+(r.share*100).toFixed(1)+'%"></div></div></div><div class="v">'+r.label+'</div></div>'; }).join("")+'</div>' : '<p class="empty">Waiting for the first answer…</p>')+'</div>'; }
 function renderHost(){
