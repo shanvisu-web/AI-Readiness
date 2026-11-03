@@ -182,12 +182,9 @@ table.pt th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:v
         <div class="qtext"><b>Scan to join on your phone</b><span class="status">Open your camera and point it at the code.</span><span class="url" id="member-url" hidden></span><button class="btn sm" id="present" type="button" hidden>Full screen</button></div>
       </div>
       <form id="join-form" hidden style="display:flex;flex-direction:column;gap:12px">
-        <div class="grid3">
-          <label class="f" for="f-name">Your name<input id="f-name" autocomplete="name" placeholder="Required" required></label>
-          <label class="f" for="f-company">Company<input id="f-company" autocomplete="organization" placeholder="Optional"></label>
-          <label class="f" for="f-table">Table<select id="f-table"><option value="">Optional</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></label>
-        </div>
-        <div class="actions"><button class="btn primary" type="submit" id="start">Start scoring</button><span class="status" id="join-status">No login. Your name is shown only to the LTTS facilitator.</span></div>
+        <label class="f" for="f-name">Your name<input id="f-name" autocomplete="name" placeholder="Required" required></label>
+        <input type="hidden" id="f-company" value=""><input type="hidden" id="f-table" value="">
+        <div class="actions"><button class="btn primary" type="submit" id="start">Start scoring</button><span class="status" id="join-status">Your name is shown only to the LTTS facilitator.</span></div>
       </form>
     </div>
     <div class="right" role="img" aria-label="Golden Gate Bridge at dusk"><svg class="badge" role="img" aria-label="LTTS Advisory Council" viewBox="0 0 168 62.91" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ><style>
